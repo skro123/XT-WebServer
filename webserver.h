@@ -14,9 +14,11 @@
 
 #include "./threadpool/threadpool.h"
 #include "./http/http_conn.h"
-
+// 最大文件描述符
 const int MAX_FD = 65536;
+// 最大事件数
 const int MAX_EVENT_NUMBER = 10000;
+// 最小超时时间
 const int TIMESLOT = 5;
 
 class WebServer
@@ -53,22 +55,23 @@ class WebServer
     http_conn *users;
 
     // 数据库相关
-    connection_pool* m_connPool;
-    string m_user;
-    string m_passwd;
-    string m_databaseName;
-    int m_sql_num;
+    connection_pool* m_connPool;  // 数据库连接池
+    string m_user;  // 数据库用户名
+    string m_passwd;  // 用户密码
+    string m_databaseName;  // 所使用的数据库
+    int m_sql_num; // 最大连接数量
 
     // 线程池相关
     threadpool<http_conn> * m_pool;
-    int m_thread_num;
+    int m_thread_num; // 线程池中线程数量
 
-    epoll_event events[MAX_EVENT_NUMBER];
-    int m_listenfd;
-    int m_OPT_LINGER;
-    int m_TRIGMode;
-    int m_LISTENTrigMode;
-    int m_CONNTrigMode;
+    // 用来epoll_wait中接受就绪的事件 只需遍历该数据 提高了事件索引效率
+    epoll_event events[MAX_EVENT_NUMBER]; 
+    int m_listenfd;  // 保存主线程创建的socket监听文件描述符
+    int m_OPT_LINGER; // 这里控制close关闭socket的行为 优雅关闭连接
+    int m_TRIGMode;  // 取值0 1 2 3 分别为 （m_LISTENTrigMode,m_CONNTrigMode）所组成的二进制的状态
+    int m_LISTENTrigMode;  // Socket监听事件的触发方式 0 LT 1 ET
+    int m_CONNTrigMode;  // Socket连接描述符的触发方式 0 LT 1 ET
 
     // 定时器相关
     client_data *users_timer;

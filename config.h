@@ -1,3 +1,9 @@
+/*
+
+    配置类 配置服务器运行参数
+
+*/
+
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -27,7 +33,7 @@ class Config
     int conn_trig_mode;
     // 优雅关闭连接？
     int opt_linger;
-    // 数据库连接池数量
+    // 数据库连接池
     int sql_num;
     // 线程池内线程数量
     int thread_num;

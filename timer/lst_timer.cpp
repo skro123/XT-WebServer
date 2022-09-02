@@ -148,6 +148,7 @@ void Utils::init(int time_slot)
     m_TIMESLOT = time_slot;
 }
 
+// 使用fcntl系统调用将传入的文件描述符fd设为非阻塞的
 int Utils::setnonblocking(int fd)
 {
     int old_option = fcntl(fd, F_GETFL);
@@ -156,31 +157,47 @@ int Utils::setnonblocking(int fd)
     return old_option;
 }
 
+// 向EPoll内核事件中注册事件 并将fd设为非阻塞的
 void Utils::addfd(int epollfd, int fd, bool one_shot, int TRIGMode)
 {
-    epoll_event event;
+    epoll_event event; // 事件
+    // epoll_event.data 是用户数据
+    // epoll_event.data.fd 指定事件所从属的目标文件描述符
     event.data.fd = fd;
 
+    // 指定是否是ET模式  ET模式需要额外设置EPOLLET
+    // epoll_event.events 指定Epoll事件类型
     if (1 == TRIGMode)
-        event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+        event.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
     else
         event.events = EPOLLIN | EPOLLRDHUP;
-    
+    // 注册EPOLLONESHOT事件的文件操作符 最多触发一次 
+    // 防止同一个Socket连接被多个线程分开处理
     if (one_shot)
         event.events |= EPOLLONESHOT;
+
+    // epoll_ctl用来控制内核事件表
+    // param_1：内核事件表的描述符,
+    // param_2：ADD、MOD和DEL指定操作类型
+    // param_3: 要操作的文件描述符
+    // param_4: 选项由上面指定
     epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &event);
+
+    // 使用fcntl系统调用将fd设为非阻塞的
     setnonblocking(fd); 
 }
 
 // 信号处理函数
 void Utils::sig_handler(int sig)
 {
+    // 保留原来的errno 在函数最后恢复 以保证函数的可重入性
     int save_errno = errno;
     int msg = sig;
+    // 将信号写入管道，已通知主循环
     send(u_pipefd[1], (char *)&msg, 1, 0);
     errno = save_errno;
 }
-
+// 设置信号函数
 void Utils::add_sig(int sig, void(handler)(int), bool restart)
 {
     struct  sigaction sa;
@@ -194,6 +211,7 @@ void Utils::add_sig(int sig, void(handler)(int), bool restart)
     assert(sigaction(sig, &sa, NULL) !=  -1);
 }
 
+// 处理定时任务，并且重新定时以再次触发
 void Utils::timer_handler()
 {
     m_timer_lst.tick();

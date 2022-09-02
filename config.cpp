@@ -2,24 +2,34 @@
 
 Config::Config()
 {
+    // 服务端口号 请不要设为为已使用或者知名端口号上(0~1023)
     port = 9006;
 
+    // 日志写入方式 0表示同步
     log_write = 0;
 
+    // 触发组合模式 控制下面两个取值
     trig_mode = 0;
 
+    // socket监听的事件触发模式 在向epoll内核事件添加时使用
     listen_trigMode = 0;
 
+    // socket连接的事件触发模式
     conn_trig_mode = 0;
 
+    // 控制close行为 优雅关闭连接
     opt_linger = 0;
 
+    // 数据库连接池大小
     sql_num = 8;
 
+    // 线程池内的线程数量
     thread_num = 8;
 
+    // 是否关闭日志
     close_log = 0;
 
+    // 事件处理模型 0为proactor 1为reactor
     actor_model = 0;
 }
 
